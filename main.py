@@ -1,7 +1,7 @@
 from asyncio import get_event_loop
 import json
 import pickle
-from random import random
+from random import random, seed
 from requests import post
 
 API = 'https://api.telegram.org'
@@ -47,15 +47,22 @@ def update():
 
 
 def send():
-    post(f'{API}/bot{token}/sendMessage', {'chat_id': data['user'], 'text': 'What are you doing now?'}, timeout=10)
+    try:
+        post(f'{API}/bot{token}/sendMessage', {'chat_id': data['user'], 'text': 'What are you doing now?'}, timeout=10)
+    except:
+        loop.call_soon(send)
 
 
 def each_minute(t):
-    update()
+    loop.call_at(t + 60, each_minute, t + 60)
+    seed()
     for i in range(60):
         if random() < data['p']:
             loop.call_at(t + i, send)
-    loop.call_at(t + 60, each_minute, t + 60)
+    try:
+        update()
+    except:
+        pass
 
 
 if __name__ == '__main__':
